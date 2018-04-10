@@ -16,7 +16,7 @@ right-hand type as the key and the left-hand type as the value.
 -}
 module Data.Bimap (
     -- * Bimap type
-    Bimap(),
+    Bimap(..),
     -- * Query
     null,
     size,
@@ -604,7 +604,7 @@ Calls @'error'@ if the bimap is empty.
 /Version: 0.2.2/-}
 deleteMax :: (Ord b) => Bimap a b -> Bimap a b
 deleteMax = snd . deleteFindMax
- 
+
 {-| /O(log n)/.
 Delete the element with maximal right key.
 Calls @'error'@ if the bimap is empty.
@@ -620,7 +620,7 @@ findMax :: Bimap a b -> (a, b)
 findMax = M.findMax . toMap
 
 {-| /O(log n)/.
-Find the element with maximal right key. The 
+Find the element with maximal right key. The
 right-hand key is the first entry in the pair.
 Calls @'error'@ if the bimap is empty.
 /Version: 0.2.2/-}
@@ -650,7 +650,7 @@ Calls @'error'@ if the bimap is empty.
 /Version: 0.2.2/-}
 deleteMin :: (Ord b) => Bimap a b -> Bimap a b
 deleteMin = snd . deleteFindMin
- 
+
 {-| /O(log n)/.
 Delete the element with minimal right key.
 Calls @'error'@ if the bimap is empty.
@@ -666,7 +666,7 @@ findMin :: Bimap a b -> (a, b)
 findMin = M.findMin . toMap
 
 {-| /O(log n)/.
-Find the element with minimal right key. The 
+Find the element with minimal right key. The
 right-hand key is the first entry in the pair.
 Calls @'error'@ if the bimap is empty.
 /Version: 0.2.2/-}
