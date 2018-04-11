@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-|
 An implementation of bidirectional maps between values of two
 key types. A 'Bimap' is essentially a bijection between subsets of
@@ -95,6 +96,8 @@ import qualified Data.Map            as M
 import           Data.Maybe          (fromMaybe)
 import           Data.Typeable
 
+import GHC.Generics
+
 import           Prelude             hiding (filter, lookup, null, pred)
 import qualified Prelude             as P
 
@@ -107,6 +110,7 @@ infixr 9 .:
 A bidirectional map between values of types @a@ and @b@.
 -}
 data Bimap a b = MkBimap !(M.Map a b) !(M.Map b a)
+  deriving (Generic)
 
 instance (Show a, Show b) => Show (Bimap a b) where
     show x = "fromList " ++ (show . toList $ x)
@@ -120,7 +124,7 @@ instance (Ord a, Ord b) => Ord (Bimap a b) where
 {-|
 A 'Bimap' action failed.
 -}
-data BimapException = KeyNotFound String
+newtype BimapException = KeyNotFound String
   deriving(Eq, Show, Typeable)
 
 instance Exception BimapException
@@ -173,7 +177,7 @@ can be used infix.
 pairMember :: (Ord a, Ord b)
            => (a, b) -> Bimap a b -> Bool
 pairMember (x, y) (MkBimap left _) =
-    maybe False (== y) (M.lookup x left)
+    (== Just y) (M.lookup x left)
 
 {-| /O(log n)/.
 Are the two values not in the bimap, or not associated
@@ -326,23 +330,17 @@ This function will @return@ the result in the monad, or @fail@ if
 the value isn't in the bimap.
 
 /Version: 0.2/-}
-lookup :: (Ord a, Ord b, MonadThrow m)
-       => a -> Bimap a b -> m b
-lookup x (MkBimap left _) =
-    maybe (throwM $ KeyNotFound "Data.Bimap.lookup")
-          return
-          (M.lookup x left)
+lookup :: (Ord a, Ord b)
+       => a -> Bimap a b -> Maybe b
+lookup x (MkBimap left _) = M.lookup x left
 
 {-| /O(log n)/.
 A version of 'lookup' that is specialized to the right key,
 and returns the corresponding left key.
 /Version: 0.2/-}
-lookupR :: (Ord a, Ord b, MonadThrow m)
-        => b -> Bimap a b -> m a
-lookupR y (MkBimap _ right) =
-    maybe (throwM $ KeyNotFound "Data.Bimap.lookupR")
-          return
-          (M.lookup y right)
+lookupR :: (Ord a, Ord b)
+        => b -> Bimap a b -> Maybe a
+lookupR y (MkBimap _ right) = M.lookup y right
 
 {-| /O(log n)/.
 Find the right key corresponding to a given left key.
@@ -522,12 +520,9 @@ for any bimap created using the public interface, unless
 /Version: 0.2/-}
 valid :: (Ord a, Ord b)
       => Bimap a b -> Bool
-valid (MkBimap left right) = and
-    [ M.valid left, M.valid right
-    , (==)
-        (sort .                M.toList $ left )
+valid (MkBimap left right) = M.valid left && M.valid right &&
+    (==) (sort .                M.toList $ left )
         (sort . P.map flipPair . M.toList $ right)
-    ]
     where
     flipPair (x, y) = (y, x)
 
